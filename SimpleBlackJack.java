@@ -9,10 +9,12 @@ public class SimpleBlackJack {
 
 	private static PlayerDatabase allPlayers = new PlayerDatabase();
 	private static PlayerDatabase currPlayers = new PlayerDatabase();
-	private static Player curr = null;
+	private static Player currPlayer = null;
 	private static BlackjackStack bj = null;
 	public static Scanner in = null;
 	private static int numDecks = 1;
+	private static int minBet = 5;
+	private static int maxBet = 50;
 
 	public static void main(String[] args) {
 		loadDatabase();
@@ -60,12 +62,22 @@ public class SimpleBlackJack {
 			}
 		}
 	}
+	
+	private static void displayStats() {
+		//TODO Add more things to PlayerDB.txt. Like wins, losses, total earned and gained. 
+		//Need to change load/save methods
+		//and constructor for Player. Should be able to sort certain things
+		
 
+	}
+	
 	private static void setUp() {
 		currPlayers = Menues.setCurrPlayers(allPlayers);
 		setCurrDeck();
+		changeMinMaxBet();
 		startGame();
 	}
+
 
 	private static void modifyDatabase() {
 		Menues.changeDatabase(allPlayers);
@@ -94,7 +106,7 @@ public class SimpleBlackJack {
 		}
 		try {
 			bj = new BlackjackStack(deck, currPlayers.getPlayers());
-			curr = bj.startGame();		
+			currPlayer = bj.startGame();		
 		} catch (IllegalArgumentException e) {
 			System.out.println("\nWhen choosing a list of players, one and only one of them must be of type house\n");
 			currPlayers.getPlayers().clear();
@@ -112,12 +124,25 @@ public class SimpleBlackJack {
 		createDeck();
 	}
 
-	private static void displayStats() {
-		//TODO Add more things to PlayerDB.txt. Like wins, losses, total earned and gained. Need to change load/save methods
-		//and constructor for Player. Should be able to sort certain things
-
+	private static void changeMinMaxBet() {
+		System.out.println("Current min bet is "+minBet+" and current max bet is "+maxBet+"\n");
+		System.out.println("Press 1 to use current min and max bets.");
+		System.out.print("Press anything else to change it: ");
+		int response = in.nextInt();
+		System.out.println();
+		if (response != 1) {
+			System.out.println();
+			System.out.print("Enter a new minimum bet: ");
+			response = in.nextInt();
+			minBet = response;
+			System.out.println();
+			System.out.print("Enter a new maximum bet: ");
+			response = in.nextInt();
+			maxBet = response;
+			System.out.println();
+		}
 	}
-
+	
 	private static void startGame() {
 		simulateGame();
 		System.out.print("Want to play again? (Press y)");
@@ -134,84 +159,94 @@ public class SimpleBlackJack {
 		boolean exit = false;
 		boolean bust = false;
 		boolean hasHit = false;
-		curr = currPlayers.getPlayers().get(0);
-		makeBets();
-		//Ability to see first of house's cards 
-		//curr = currPlayers.getPlayers().get(currPlayers.getPlayers().size()-1);
-		System.out.println(curr.getName()+""
-				+ ": ["+curr.getHand().get(0)+", ??]\n");
-		curr = bj.changeTurn();
+		currPlayer = currPlayers.getPlayers().get(0);
+		makeBets();		
+		//Print all player hands and see first of house's cards 
+		System.out.println("\n");
+		for (int i = 0; i < currPlayers.getPlayers().size() - 1; i++) {
+			System.out.println(currPlayer.getName()+ ": "+currPlayer.getHand()+"\n");
+			currPlayer = bj.changeTurn();
+		}
+		
+		System.out.println(currPlayer.getName()
+				+ ": ["+currPlayer.getHand().get(0)+", ??]\n");
+		currPlayer = bj.changeTurn();
 
 
 		while (!exit) {
-			System.out.println("\nIt is "+curr.getName()+"'s turn!\n");
-			if (curr.getType() == 'p') {
-				if (!curr.hasDoubleDowned()) {
-					System.out.println("\nCommands\nc = check hand\nh = hit\ns= stay\nd = double down"
-							+ "\nv = get hand value\nf = fold");
+			System.out.println("\nIt is "+currPlayer.getName()+"'s turn!\n");
+			if (currPlayer.getType() == 'p') {
+				if (!currPlayer.hasDoubleDowned()) {
+					System.out.println("\nCommands\nc = check hand\nh = hit\ns = stay\nd = "
+							+ "double down\nv = get hand value\nf = fold");
 					char command = in.next().charAt(0);
 					in.nextLine();
 					switch (command) {
-					case 'c': System.out.println(curr.getHand()); break;
+					case 'c': System.out.println(currPlayer.getHand()); break;
 					case 'h': 
 						if (!hasHit) {
 							hasHit = true;
-							bj.hit(curr); 
+							bj.hit(currPlayer); 
 							bust = bj.isBust();
 							if (bust) {
-								System.out.println(curr.getName()+" busted!\n"+curr.getHand());
+								System.out.println(currPlayer.getName()+" busted!\n"+currPlayer.getHand());
 								hasHit = false;
-								curr = bj.changeTurn();
+								currPlayer = bj.changeTurn();
 							}
 						}
 						else {
 							System.out.println("You can only hit once per turn. Type 's' to end turn.");
 						}
 						break;
+						
 					case 's':
 						hasHit = false;
-						int value = bj.countHandForValue(curr.getHand());
-						curr.setCardValue(value);
-						curr = bj.changeTurn(); break;
+						int value = bj.countHandForValue(currPlayer.getHand());
+						currPlayer.setCardValue(value);
+						currPlayer = bj.changeTurn(); 
+						break;
+						
 					case 'd':
-						if (!hasHit && !curr.hasDoubleDowned()) {
-							curr.makeDoubleDowned(true);
-							bj.hit(curr);
+						if (!hasHit && !currPlayer.hasDoubleDowned()) {
+							currPlayer.makeDoubleDowned(true);
+							bj.hit(currPlayer);
 							bust = bj.isBust();
 							if (bust) {
-								System.out.println(curr.getName()+" busted!\n"+curr.getHand());
+								System.out.println(currPlayer.getName()+" busted!\n"+currPlayer.getHand());
 								hasHit = false;
-								curr = bj.changeTurn();
+								currPlayer = bj.changeTurn();
 							}
 							else {
-								System.out.println(curr.getHand());
+								System.out.println(currPlayer.getHand());
 							}
-							int value1 = bj.countHandForValue(curr.getHand());
-							curr.setCardValue(value1);
+							int value1 = bj.countHandForValue(currPlayer.getHand());
+							currPlayer.setCardValue(value1);
 						}
 						else {
 							System.out.println("Move not valid.");
 						}
 						break;
-					case 'v': System.out.println(bj.countHandForValue(curr.getHand())); break;
+						
+					case 'v': System.out.println(bj.countHandForValue(currPlayer.getHand())); break;
+					
 					case 'f': 
 						hasHit = false;
-						curr.makeBust(true);
-						int value2 = bj.countHandForValue(curr.getHand());
-						curr.setCardValue(value2);
-						curr = bj.changeTurn();
+						currPlayer.makeBust(true);
+						int value2 = bj.countHandForValue(currPlayer.getHand());
+						currPlayer.setCardValue(value2);
+						currPlayer = bj.changeTurn();
 						break; //remove player from active game
 					}
 				}
 				else {
-					curr = bj.changeTurn();
+					currPlayer = bj.changeTurn();
 				}
 			}
 			else {	// Determine if the game is over or not
 				exit = endTurn();
 			}
 		}
-		//TODO: reset busts and card values and bets once done (add to add/remove funds once done with game instead?)
+		
 		for (Player p: currPlayers.getPlayers()) {
 			p.getHand().clear(); // remove cards from player
 			p.setCurrBet(0);
@@ -223,21 +258,23 @@ public class SimpleBlackJack {
 	}
 
 	private static void makeBets() {
-		while (curr.getType() != 'h') {
+		while (currPlayer.getType() != 'h') {
 			int bet = 0;
-			while (bet < 5 || bet > 50) {
-				System.out.print(curr.getName()+", select an amount to bet. Min= 5, Max= 50: ");
+			while (bet < minBet || bet > maxBet) {
+				System.out.print(currPlayer.getName()+", select an amount to bet. Min= "+minBet+", Max= "
+						+maxBet+": ");
 				bet = in.nextInt();
-				curr.setCurrBet(bet);
+				currPlayer.setCurrBet(bet);
 				System.out.println();
 				//TODO: Case when player cannot afford bet
-				if (bet > curr.getFunds()) {
-					curr.setFunds(curr.getFunds()+bet);
+				if (bet > currPlayer.getFunds()) {
+					currPlayer.setFunds(currPlayer.getFunds()+bet);
 				}
 			} 
-			curr = bj.changeTurn();
+			currPlayer = bj.changeTurn();
 		}
-		// returns current player as house
+		currPlayer = bj.changeTurn();
+		// returns current player as first player
 	}
 
 	private static boolean endTurn() {
@@ -251,29 +288,29 @@ public class SimpleBlackJack {
 		if (bustedPlayers){
 			//int value = bj.countHandForValue(curr.getHand());
 			//curr.setCardValue(value);
-			curr.setCardValue(0);
+			currPlayer.setCardValue(0);
 			bj.endGame();
 			return true;
 		}
 		else {
-			int value = bj.countHandForValue(curr.getHand());
-			curr.setCardValue(value);
+			int value = bj.countHandForValue(currPlayer.getHand());
+			currPlayer.setCardValue(value);
 			if (value >= 17) {
-				System.out.println(curr.getName()+" has hit to the appropriate amount.\n");
+				System.out.println(currPlayer.getName()+" has hit to the appropriate amount.\n");
 				// would use isBust but takes more lines
 				if (value > 21) {
-					System.out.println(curr.getName()+" has bust!\n");
-					curr.setCardValue(0);
-					curr.makeBust(true);
+					System.out.println(currPlayer.getName()+" has bust!\n");
+					currPlayer.setCardValue(0);
+					currPlayer.makeBust(true);
 				}
 				// check all active player hands and end game
 				bj.endGame();
 				return true;
 			}
 			else {
-				bj.hit(curr);
-				System.out.println(curr.getName()+" hit!");
-				curr = bj.changeTurn();
+				bj.hit(currPlayer);
+				System.out.println(currPlayer.getName()+" hit!");
+				currPlayer = bj.changeTurn();
 				return false;
 			}
 		}

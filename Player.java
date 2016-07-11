@@ -175,7 +175,7 @@ public class Player {
 	}
 
 	public String toString() {
-		return "Name: "+name+"\nCards: "+cards+"\nType: "+type+"\n";
+		return "Name: "+name+"\tCards: "+cards+"\tType: "+type+"\tBusted: "+hasBust+"\n";
 	}
 
 }
