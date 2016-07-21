@@ -121,8 +121,9 @@ public class BlackjackStack{
 				int fundsGained;
 				if (players.get(i).getCardValue() == 21) {
 					// If player gets a 21, player gets 1.5 x his/her original bet
+					
 					//TODO: Number rounds down. Not sure if this is desired or not
-					fundsGained = players.get(i).getCurrBet()+ (players.get(i).getCurrBet()/2);					
+					fundsGained = players.get(i).getCurrBet()+ (players.get(i).getCurrBet() /2);					
 					players.get(i).addFunds(fundsGained);
 				}
 				
@@ -132,14 +133,19 @@ public class BlackjackStack{
 				}
 				
 				players.get(players.size()-1).removeFunds(fundsGained);
-
+				
+				// update stats
+				players.get(i).addWin();
+				players.get(players.size()-1).addLoss();
+				
 				System.out.println(players.get(i).getName()+" beat "+
 						players.get(players.size()-1).getName()+" and won "+fundsGained+" dollars! \n");
 			}
 			else {
 				
-				// House doesn't bust but player does
-				if (!players.get(players.size()-1).hasBust() && players.get(i).hasBust()) {
+				// House doesn't bust but player does or house has higher card value
+				if (!players.get(players.size()-1).hasBust() && players.get(i).hasBust()
+						|| (players.get(players.size()-1).getCardValue() > players.get(i).getCardValue())) {
 					
 					int fundsLost = players.get(i).getCurrBet();
 					// transfer funds from player to house
@@ -149,14 +155,23 @@ public class BlackjackStack{
 					System.out.println(players.get(i).getName()+" was defeated by "+
 							players.get(players.size()-1).getName()+" and will give "+players.get(players.size()-1).getName()
 							+" "+fundsLost+" dollars!\n");
-										
+					
+					// update stats
+					players.get(i).addLoss();
+					players.get(players.size()-1).addWin();
+					
 				}
-				
+								
 				// Both player and house bust or both player and house have the same card value
 				else {
 					System.out.println(players.get(i).getName()+" draws with "
-							+players.get(players.size()-1).getName()+"! Neither "+players.get(i).getName()+" nor"
+							+players.get(players.size()-1).getName()+"! Neither "+players.get(i).getName()+" nor "
 							+players.get(players.size()-1).getName()+" gain or lose any money!\n");
+					
+					// update stats
+					players.get(i).addDraw();
+					players.get(players.size()-1).addDraw();
+					
 				}
 			}
 			System.out.println(players.get(i).getName()+": "+players.get(i).getHand()+" = "+players.get(i).getCardValue()+"\n");

@@ -1,4 +1,3 @@
-
 package cardGames;
 
 import java.util.ArrayList;
@@ -16,23 +15,54 @@ public class Player {
 	private boolean hasBust; // blackjack case
 	private boolean hasDoubleDowned; // blackjack case
 	private boolean hasWon;
+	private int wins;
+	private int losses;
+	private int draws;
+	private int moneyEarned;
+	private int moneyLost;
+	private boolean firstTurn;
 
 	public <E> Player(String name, char type, int funds) {
+		
+		initConstructorBasics(name, type, funds);
+		this.wins = 0;
+		this.losses = 0;
+		this.draws = 0;
+		this.moneyEarned = 0;
+		this.moneyLost = 0;
+	}
+	
+	public <E> Player(String name, char type, int funds, 
+			int wins, int losses, int draws, int moneyEarned, int moneyLost) {
+		
+		initConstructorBasics(name, type, funds);
+
+		this.wins = wins;
+		this.losses = losses;
+		this.draws = draws;
+		this.moneyEarned = moneyEarned;
+		this.moneyLost = moneyLost;
+	}
+	
+	private void initConstructorBasics(String name, char type, int funds) {
+		
 		if (type != 'p' && type != 'h') {
 			throw new IllegalArgumentException();
 		}
+		
 		this.setName(name);
 		this.setType(type); // regular or house 'p' and 'h'
 		cards = new ArrayList <Card> ();
 		cardValue = 0;
 		//chips = new ArrayList <Chip> ();
 		currBet = 0;
+		firstTurn = true;
 		this.funds = funds;
 		hasBust = false;
 		hasDoubleDowned = false;
 		hasWon = false;
 	}
-
+	
 	public void addCard(Card e) {
 		if (e == null) {
 			throw new IllegalArgumentException();
@@ -122,20 +152,26 @@ public class Player {
 		return funds;
 	}
 	
+	// for special cases (ie. 21 in blackjack yields 1.5x original bet)
 	public void addFunds(int funds) {
 		this.funds += funds;
+		moneyEarned += funds;
 	}
 	
+	// for special cases. The house gives this amount to the player
 	public void removeFunds(int funds) {
 		this.funds -= funds;
+		moneyLost += funds;
 	}
 	
 	public void addFunds() {
 		this.funds += currBet;
+		moneyEarned += currBet;
 	}
 	
 	public void removeFunds() {
 		this.funds -= currBet;
+		moneyLost += currBet;
 	}
 	
 	public void setFunds(int funds) {
@@ -174,8 +210,59 @@ public class Player {
 		this.hasWon = hasWon;
 	}
 
-	public String toString() {
-		return "Name: "+name+"\tCards: "+cards+"\tType: "+type+"\tBusted: "+hasBust+"\n";
+	public int getWins() {
+		return wins;
 	}
 
+	public void addWin() {
+		wins += 1;
+	}
+
+	public int getLosses() {
+		return losses;
+	}
+
+	public void addLoss() {
+		losses += 1;
+	}
+
+	public int getDraws() {
+		return draws;
+	}
+
+	public void addDraw() {
+		draws += 1;
+	}
+	
+	// added when funds are added to account
+	public int getMoneyEarned() {
+		return moneyEarned;
+	}
+	
+	// added when funds are removed from an account
+	public int getMoneyLost() {
+		return moneyLost;
+	}
+	
+	public boolean getFirstTurn() {
+		return firstTurn;
+	}
+	
+	public void setFirstTurn(boolean firstTurn) {
+		this.firstTurn = firstTurn;
+	}
+	
+	public int compareTo(Player p1) {
+		if (getFunds() > p1.getFunds())
+			return 1;
+		if (getFunds() < p1.getFunds())
+			return -1;
+		return 0;
+	}
+	
+	// Blackjack
+	public String toString() {
+		return name+": "+cards+" , Busted: "+hasBust
+				+" , Current bet: "+currBet+"\n";
+	}
 }
