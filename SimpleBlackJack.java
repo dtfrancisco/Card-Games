@@ -12,15 +12,36 @@ public class SimpleBlackJack {
 	private static Player currPlayer = null;
 	private static BlackjackStack bj = null;
 	public static Scanner in = null;
-	private static int numDecks = 1;
-	private static int minBet = 5;
-	private static int maxBet = 50;
+	private static int numDecks;
+	private static int minBet;
+	private static int maxBet;
+	private static char hitOn17;
 
 	public static void main(String[] args) {
 		loadDatabase();
+		loadSettings();
 		mainMenu();
 		updateData();
+		updateSettings();
 		in.close();
+	}
+
+	private static void loadSettings() {
+		String fileName = "Settings.txt";
+		File f = new File(fileName);
+		Scanner fileReader = null;
+		try {
+			fileReader = new Scanner(f);
+			numDecks = fileReader.nextInt();
+			minBet = fileReader.nextInt();
+			maxBet = fileReader.nextInt();
+			hitOn17 = fileReader.next().charAt(0);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		} finally {
+			fileReader.close();
+		}
 	}
 
 	private static void loadDatabase() {
@@ -57,52 +78,62 @@ public class SimpleBlackJack {
 
 		while (!exit) {
 
-			System.out.println("\ns = set up game\nm = modify database\nd = display stats\nq = quit");
+			System.out.println("\nb = begin game\nc = view current settings\ns = alter settings\nm = modify database\nd = display stats\nq = quit");
 			char command = in.next().charAt(0);
 			in.nextLine();
 
 			switch (command) {
-			case 's': setUp(); break;
-			case 'm': modifyDatabase(); break;
-			case 'd': displayStats(); break;
+			case 'b': setUp(); break;
+			case 'c': viewCurrSettings();;break;
+			case 's': changeSettings(); break;
+			case 'm': Menues.changeDatabase(allPlayers); break;
+			case 'd': Menues.displayStats(allPlayers); break;
 			case 'q': exit = true; break;
 			}
 		}
 	}
 
-	private static void displayStats() {
-		//TODO Add more things to PlayerDB.txt. Like wins, losses, total earned and gained. 
-		//Need to change load/save methods
-		//and constructor for Player. Should be able to sort certain things
-		Menues.displayStats(allPlayers);
+	private static void viewCurrSettings() {
+		System.out.println("\nNum. Decks = "+numDecks+"\nCurr Min. bet = "+minBet
+				+"\nCurr Max. bet = "+maxBet+"\nSoft/hard 17 = "+hitOn17+"\n");		
+	}
+
+	private static void changeSettings() {
+		boolean exit = false;
+		while (!exit){
+			System.out.println("\n1 = alter number of decks\n2 = change min/max bet\n3 = change soft/hard 17"
+					+ "\n4 = view current settings\n5 = exit");
+			int response = in.nextInt();
+			switch (response) {
+			case 1: 
+				int decks;
+				decks = Menues.setNumDecks(); 
+				numDecks = decks;
+				break;
+			case 2: 
+				int [] minMax = new int[2];
+				minMax = Menues.setMinMaxBet(); 
+				minBet = minMax[0];
+				maxBet = minMax[1];
+				break;
+			case 3: 
+				char type;
+				do {
+					System.out.print("Press s to make the dealer hit on a soft 17, press h to implement a hard 17: ");
+					type = in.next().charAt(0);
+					System.out.println("\n");
+				} while (type != 's' && type != 'h');
+				break;
+			case 4: viewCurrSettings(); break;
+			case 5: exit = true; break;
+			}
+		}
 	}
 
 	private static void setUp() {
 		currPlayers = Menues.setCurrPlayers(allPlayers);
-		setCurrDeck();
-		changeMinMaxBet();
+		createDeck();
 		startGame();
-	}
-
-
-	private static void modifyDatabase() {
-		Menues.changeDatabase(allPlayers);
-	}
-
-	private static void setCurrDeck() {
-		System.out.println("\n1 = create standard 52 card deck\n2 = create a multideck");
-		int response = in.nextInt();
-		if (response == 1) {
-			createDeck();
-			System.out.println("\nDeck properly created\n");
-		}
-		else if (response == 2) {
-			specialDeck();
-			System.out.println("\nDeck properly created\n");
-		}
-		else {
-			System.out.println("\nA deck was not created!\n");
-		}		
 	}
 
 	private static void createDeck() {
@@ -117,35 +148,6 @@ public class SimpleBlackJack {
 			System.out.println("\nWhen choosing a list of players, one and only one of them must be of type house\n");
 			currPlayers.getPlayers().clear();
 			setUp();
-		}
-	}
-
-	private static void specialDeck() {
-		int decks;
-		do {
-			System.out.print("\nSelect the number of decks you want to play with (1-8): ");
-			decks = in.nextInt();
-			numDecks = decks;
-		} while (decks > 8 || decks < 1); // maximum of 8, minimum of 1 deck 
-		createDeck();
-	}
-
-	private static void changeMinMaxBet() {
-		System.out.println("Current min bet is "+minBet+" and current max bet is "+maxBet+"\n");
-		System.out.println("Press 1 to use current min and max bets.");
-		System.out.print("Press anything else to change it: ");
-		int response = in.nextInt();
-		System.out.println();
-		if (response != 1) {
-			System.out.println();
-			System.out.print("Enter a new minimum bet: ");
-			response = in.nextInt();
-			minBet = response;
-			System.out.println();
-			System.out.print("Enter a new maximum bet: ");
-			response = in.nextInt();
-			maxBet = response;
-			System.out.println();
 		}
 	}
 
@@ -169,10 +171,6 @@ public class SimpleBlackJack {
 				bet = in.nextInt();
 				currPlayer.setCurrBet(bet);
 				System.out.println();
-				//TODO: Case when player cannot afford bet
-				if (bet > currPlayer.getFunds()) {
-					currPlayer.setFunds(currPlayer.getFunds()+bet);
-				}
 			} 
 			currPlayer = bj.changeTurn();
 		}
@@ -212,7 +210,6 @@ public class SimpleBlackJack {
 								System.out.println(currPlayer.getName()+" busted!\n"+currPlayer.getHand()+"\n");
 								hasHit = false;
 							}
-							currPlayer = bj.changeTurn();
 						}
 						else {
 							System.out.println("You can only hit once per turn. Type 's' to end turn.\n");
@@ -322,7 +319,18 @@ public class SimpleBlackJack {
 			int value = bj.countHandForValue(currPlayer.getHand());
 			currPlayer.setCardValue(value);
 			//TODO: Implement soft 17 feature
-			if (value >= 17) {
+			boolean hit = false;
+			if (value == 17) {
+				if (hitOn17 == 's') {
+					for (Card e: currPlayer.getHand()){
+						if (e.getRank() == 1) {
+							hit = true;
+							break;
+						}
+					}
+				}
+			}
+			if (value >= 17 && !hit) {
 				System.out.println(currPlayer.getName()+" has hit to the appropriate amount.\n");
 
 				//TODO: would use isBust() but takes more lines
@@ -357,6 +365,24 @@ public class SimpleBlackJack {
 						+p.getLosses()+" "+p.getDraws()+" "+p.getMoneyEarned()+" "+p.getMoneyLost());
 			}
 
+		} catch (FileNotFoundException g) {
+			g.printStackTrace();
+			System.exit(-1);
+		} finally {
+			pw.close();
+		}		
+	}
+
+	private static void updateSettings() {
+		String writeTo = "Settings.txt";
+		File f = new File(writeTo);
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(f);
+			pw.println(numDecks);
+			pw.println(minBet);
+			pw.println(maxBet);
+			pw.println(hitOn17);
 		} catch (FileNotFoundException g) {
 			g.printStackTrace();
 			System.exit(-1);

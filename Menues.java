@@ -1,13 +1,39 @@
 package cardGames;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
 public class Menues {
 
 	public static Scanner in = new Scanner(System.in);
+
+	public static int setNumDecks() {
+		int decks;
+		int counter = 0;
+		do {
+			if (counter != 0) {
+				System.out.println("Invalid number of decks");
+			}
+			counter++;
+			System.out.print("\nSelect the number of decks you want to play with (1-8): ");
+			decks = in.nextInt();
+		} while (decks > 8 || decks < 1); // maximum of 8, minimum of 1 deck 
+		return decks;		
+	}
+
+	public static int[] setMinMaxBet() {
+		int [] minMax = new int [2];
+		int response;
+		System.out.print("Enter a new minimum bet: ");
+		response = in.nextInt();
+		minMax[0] = response;
+		System.out.println();
+		System.out.print("Enter a new maximum bet: ");
+		response = in.nextInt();
+		minMax[1] = response;
+		System.out.println();
+		return minMax;
+	}
 
 	public static void changeDatabase(PlayerDatabase db) {
 		boolean end = false;
@@ -314,7 +340,7 @@ public class Menues {
 					System.out.println(curr.getName()+": "+curr.getDraws());
 				}
 				break;
-				
+
 			case 9: 
 				List <Player> rankedMGained = new ArrayList <Player> ();
 				System.out.println("Players who have the most money earned from greatest to least are: \n");
