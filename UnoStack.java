@@ -36,7 +36,9 @@ public class UnoStack <E> implements DeckADT<E>{
 		for (int i = 0; i < 4; i++) {
 			@SuppressWarnings("unchecked")
 			E wild = (E) new UnoCard(5, 13);
+			@SuppressWarnings("unchecked")
 			E wildDraw4 = (E) new UnoCard(5, 14);
+			@SuppressWarnings("unchecked")
 			E zeroes = (E) new UnoCard(color, 0);
 			// throws exception if not valid card
 			addCard(wild);
@@ -52,10 +54,10 @@ public class UnoStack <E> implements DeckADT<E>{
 		if (e == null) {
 			throw new IllegalArgumentException();
 		}
-		if (((Card) e).getRank() > 14 || ((Card) e).getRank() < 0) {
+		if (((UnoCard) e).getRank() > 14 || ((UnoCard) e).getRank() < 0) {
 			throw new IllegalArgumentException();
 		}
-		if (((Card) e).getSuit() > 5 || ((Card) e).getSuit() < 1) {
+		if (((UnoCard) e).getColor() > 5 || ((UnoCard) e).getColor() < 1) {
 			throw new IllegalArgumentException();
 		}
 		cards.push(e);
@@ -73,6 +75,14 @@ public class UnoStack <E> implements DeckADT<E>{
 			e.getStackTrace();
 		}
 		items--;
+		return curr;
+	}
+	
+	public E peek() {
+		if (isEmpty()) {
+			throw new IllegalArgumentException();
+		}
+		E curr = cards.peek();
 		return curr;
 	}
 
@@ -110,22 +120,18 @@ public class UnoStack <E> implements DeckADT<E>{
 	}
 
 	public String toString() {
-		String ret = "";
 		Stack <E> temp = cards;
-		SimpleQueue<E> writeBack = new SimpleQueue <E> ();
+		Stack <E> writeBack = new Stack <E> ();
+		String ret = "";
 		while (!temp.isEmpty()) {
-			writeBack.enqueue(temp.pop());
+			writeBack.push(temp.pop());
 		}
 		while (!writeBack.isEmpty()){
 			E curr = null;
-			try {
-				curr = temp.push(writeBack.dequeue());
-				ret += curr;
-				if (!writeBack.isEmpty()){
-					ret += ", ";
-				}
-			} catch (EmptyQueueException e) {
-				e.printStackTrace();
+			curr = temp.push(writeBack.pop());
+			ret += curr;
+			if (!writeBack.isEmpty()){
+				ret += ", ";
 			}
 		}
 		return ret;
@@ -134,7 +140,6 @@ public class UnoStack <E> implements DeckADT<E>{
 
 	@Override
 	public void insert52() {
-		// TODO Auto-generated method stub
-
+		// Won't implement
 	}
 }
